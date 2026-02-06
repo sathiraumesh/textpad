@@ -1,34 +1,56 @@
 package ansi
 
+import "fmt"
+
 const (
-	ESC = "\x1b"
+	ESC    rune   = '\x1b' // ESC as rune for comparisons
+	escStr string = "\x1b" // ESC as string for concatenation
 
 	// Screen buffer
-	EnterAltScreen = ESC + "[?1049h"
-	ExitAltScreen  = ESC + "[?1049l"
+	EnterAltScreen = escStr + "[?1049h"
+	ExitAltScreen  = escStr + "[?1049l"
 
 	// Screen control
-	ClearScreen = ESC + "[2J"
-	CursorHome  = ESC + "[H"
+	ClearScreen = escStr + "[2J"
+	CursorHome  = escStr + "[H"
 
 	// Line control
-	ClearLine = ESC + "[K"
+	ClearLine = escStr + "[K"
 
 	// Cursor visibility
-	ShowCursor = ESC + "[?25h"
-	HideCursor = ESC + "[?25l"
+	ShowCursor = escStr + "[?25h"
+	HideCursor = escStr + "[?25l"
 
 	// Cursor shapes
-	CursorBlinkBar = ESC + "[5 q"
-	CursorDefault  = ESC + "[0 q"
+	CursorBlinkBar = escStr + "[5 q"
+	CursorDefault  = escStr + "[0 q"
 
 	// Colors
-	Red   = ESC + "[31m"
-	Green = ESC + "[32m"
-	Blue  = ESC + "[34m"
-	Gray  = ESC + "[90m"
-	Reset = ESC + "[0m"
+	Red   = escStr + "[31m"
+	Green = escStr + "[32m"
+	Blue  = escStr + "[34m"
+	Gray  = escStr + "[90m"
+	Reset = escStr + "[0m"
 
 	// Invert colors (status bar)
-	Invert = ESC + "[7m"
+	Invert = escStr + "[7m"
 )
+
+// MoveCursor returns the escape sequence to position cursor at row, col (1-indexed)
+func MoveCursor(row, col int) {
+	fmt.Printf("%s[%d;%dH", escStr, row, col)
+}
+
+// InitScreen initializes the terminal for editor use
+func InitScreen() {
+	fmt.Print(EnterAltScreen)
+	fmt.Print(ClearScreen)
+	fmt.Print(CursorHome)
+	// fmt.Print(CursorBlinkBar)
+}
+
+// RestoreScreen restores the terminal to its previous state
+func RestoreScreen() {
+	fmt.Print(CursorDefault)
+	fmt.Print(ExitAltScreen)
+}

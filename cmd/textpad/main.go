@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -41,25 +40,28 @@ func main() {
 		ed.NewFile()
 	}
 
-	// save the current sceeen
-	fmt.Print(ansi.EnterAltScreen)
-
-	fmt.Print(ansi.ClearScreen)
-	fmt.Print(ansi.CursorHome)
-	fmt.Print(ansi.CursorBlinkBar)
-
-	defer fmt.Print(ansi.ExitAltScreen)
-	defer fmt.Print(ansi.CursorDefault)
+	ansi.InitScreen()
+	defer ansi.RestoreScreen()
 
 	for {
-		b, err := readKey()
+		row, col := ed.CursorPosition()
+		ansi.MoveCursor(row, col)
+		key, err := readKey()
 		if err != nil {
 			break
 		}
 
-		fmt.Print(ansi.ShowCursor)
-		if b == 'q' {
+		switch key {
+		case 'q':
 			return
+		case KeyUp:
+			ed.MoveUp()
+		case KeyDown:
+			ed.MoveDown()
+		case KeyLeft:
+			ed.MoveLeft()
+		case KeyRight:
+			ed.MoveRight()
 		}
 	}
 }

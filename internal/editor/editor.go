@@ -67,6 +67,33 @@ func (e *Editor) OpenFile(name string) error {
 	return nil
 }
 
+// the actual start location of the cursor window is (1, 1) we use (0, 0) based initialization
+func (e *Editor) CursorPosition() (row int, col int) {
+	return e.curY + 1, e.curX + 1
+}
+
+func (e *Editor) MoveUp() {
+	if e.curY > 0 {
+		e.curY--
+	}
+}
+
+func (e *Editor) MoveDown() {
+	// TODO just for testing move down need to change based on number of lines and ennter
+	e.curY++
+}
+
+func (e *Editor) MoveRight() {
+	e.curX++
+	// TODO just for testing move right need to change based length of the line and space
+}
+
+func (e *Editor) MoveLeft() {
+	if e.curX > 0 {
+		e.curX--
+	}
+}
+
 func (e *Editor) NewFile() {
 	e.lines = [][]rune{[]rune{}}
 }
