@@ -46,22 +46,14 @@ func main() {
 	for {
 		row, col := ed.CursorPosition()
 		ansi.MoveCursor(row, col)
-		key, err := readKey()
+		key, err := ed.ReadKey()
 		if err != nil {
 			break
 		}
 
-		switch key {
-		case 'q':
-			return
-		case KeyUp:
-			ed.MoveUp()
-		case KeyDown:
-			ed.MoveDown()
-		case KeyLeft:
-			ed.MoveLeft()
-		case KeyRight:
-			ed.MoveRight()
+		if ed.HandleKey(key) {
+			break // quit
 		}
+
 	}
 }

@@ -1,9 +1,11 @@
 package editor
 
 import (
+	"bufio"
 	"os"
 	"strings"
 
+	"github.com/sathiraumesh/textpad/internal/ansi"
 	"golang.org/x/term"
 )
 
@@ -15,6 +17,22 @@ const (
 	LF = "\n"
 )
 
+// Key represents a keyboard input (regular character or special key)
+type Key rune
+
+// Special key codes (values above Unicode range to avoid conflicts)
+const (
+	KeyUp Key = iota + 1000
+	KeyDown
+	KeyLeft
+	KeyRight
+)
+
+// Character key constants
+const (
+	KeyQuit Key = 'q'
+)
+
 type Editor struct {
 	screenW, screenH int      // height and the width of the terminal
 	filepath         string   // path to the file
@@ -22,6 +40,8 @@ type Editor struct {
 	isDirty          bool
 
 	curX, curY int // cursor in buffer coordinates (rune index, line index)
+
+	reader *bufio.Reader
 }
 
 func NewEditor() *Editor {
@@ -29,6 +49,7 @@ func NewEditor() *Editor {
 		curX:    0,
 		curY:    0,
 		isDirty: false,
+		reader:  bufio.NewReader(os.Stdin),
 	}
 }
 
@@ -79,13 +100,15 @@ func (e *Editor) MoveUp() {
 }
 
 func (e *Editor) MoveDown() {
-	// TODO just for testing move down need to change based on number of lines and ennter
-	e.curY++
+	if e.curY < len(e.lines)-1 {
+		e.curY++
+	}
 }
 
 func (e *Editor) MoveRight() {
-	e.curX++
-	// TODO just for testing move right need to change based length of the line and space
+	if e.curX < len(e.lines[e.curY]) {
+		e.curX++
+	}
 }
 
 func (e *Editor) MoveLeft() {
@@ -96,4 +119,59 @@ func (e *Editor) MoveLeft() {
 
 func (e *Editor) NewFile() {
 	e.lines = [][]rune{[]rune{}}
+}
+
+func (e *Editor) ReadKey() (Key, error) {
+	reader := bufio.NewReader(os.Stdin)
+	r, _, err := reader.ReadRune()
+
+	if err != nil {
+		return 0, err
+	}
+
+	// checking if the first byte is an ANSI ESC
+	if r == ansi.ESC {
+		seq1, _, err := reader.ReadRune()
+		if err != nil {
+			return Key(r), err
+		}
+
+		seq2, _, err := reader.ReadRune()
+		if err != nil {
+			return 0, err
+		}
+
+		// Check if it's "[" followed by A/B/C/D
+		if seq1 == '[' {
+			switch seq2 {
+			case 'A':
+				return KeyUp, nil
+			case 'B':
+				return KeyDown, nil
+			case 'C':
+				return KeyRight, nil
+			case 'D':
+				return KeyLeft, nil
+			}
+		}
+		return Key(r), nil // Unknown escape sequence
+	}
+	return Key(r), nil
+}
+
+// HandleKey processes a key input and returns true if the editor should quit
+func (e *Editor) HandleKey(key Key) bool {
+	switch key {
+	case KeyQuit:
+		return true // signal to quit
+	case KeyUp:
+		e.MoveUp()
+	case KeyDown:
+		e.MoveDown()
+	case KeyLeft:
+		e.MoveLeft()
+	case KeyRight:
+		e.MoveRight()
+	}
+	return false
 }
